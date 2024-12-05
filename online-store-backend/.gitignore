@@ -1,0 +1,46 @@
+# Go binary
+/bin/
+/obj/
+
+# Compiled binary files
+*.exe
+*.exe~
+*.out
+*.test
+*.so
+
+# Dependency directories
+/vendor/
+
+# Logs
+*.log
+
+# Environment variable files
+.env
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# MacOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+
+# Docker files
+.docker/
+docker-compose.override.yml
+
+# Test coverage reports
+coverage/
+*.cov
+
+# GoLand IDE specific
+.idea/
+
+# Build output
+build/
+
+# Cache files
+.cache/
