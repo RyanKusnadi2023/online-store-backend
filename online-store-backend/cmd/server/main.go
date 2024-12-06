@@ -8,31 +8,42 @@ import (
 	"github.com/joho/godotenv"
 
 	"online-store-backend/internal/config"
+	"online-store-backend/internal/domain/repository"
+	"online-store-backend/internal/handler"
+	"online-store-backend/internal/usecase"
 	"online-store-backend/pkg/database"
 )
 
 func main() {
-	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 	}
 
-	// Load configurations
 	cfg := config.LoadConfig()
-
-	// Initialize database connection
 	db := database.NewPostgresConnection()
 	defer db.Close()
 
-	// Initialize Gin router
+	customerRepo := repository.NewCustomerRepository(db)
+	customerUsecase := usecase.NewCustomerUsecase(customerRepo, cfg.JWT.Secret)
+	customerHandler := handler.NewCustomerHandler(customerUsecase)
+
 	router := gin.Default()
 
-	// Define a simple health check route
+	// Health Check
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "UP"})
 	})
 
-	// Start the server
+	// Auth routes
+	router.POST("/register", customerHandler.Register)
+	router.POST("/login", customerHandler.Login)
+
+	// Later, for protected routes, we will add middleware, e.g:
+	// auth := middleware.AuthMiddleware(cfg.JWT.Secret)
+	// protected := router.Group("/")
+	// protected.Use(auth)
+	// protected.GET("/profile", someProfileHandler)
+
 	if err := router.Run(":" + cfg.Server.Port); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
