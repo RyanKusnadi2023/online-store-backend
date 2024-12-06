@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: online_store_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 4444
+      POSTGRES_DB: online-store
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d online-store"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate:latest
+    depends_on:
+      - db
+    volumes:
+      - ./migrations:/migrations
+    # The command runs migrations against the database.
+    # Run this with: `docker-compose run migrate`
+    command: [
+      "sh", "-c",
+      "migrate -path=/migrations -database=postgres://admin:4444@db:5432/online-store?sslmode=disable up"
+    ]
+    environment:
+      PGPASSWORD: 4444
+
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.seed
+    depends_on:
+      - db
+    # This service seeds the database.
+    # After migrations, run: `docker-compose run seed`
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: admin
+      DB_PASSWORD: 4444
+      DB_NAME: online-store
+
+  app:
+    build: .
+    container_name: online_store_app
+    depends_on:
+      - db
+    environment:
+      PORT: 8080
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: admin
+      DB_PASSWORD: 4444
+      DB_NAME: online-store
+      JWT_SECRET: your_jwt_secret
+    ports:
+      - "8080:8080"
+    # NOTE: `app` doesn't wait for migrate/seed to finish automatically.
+    # Run `migrate` & `seed` before starting `app` for a fully set environment.
+
+volumes:
+  db_data:

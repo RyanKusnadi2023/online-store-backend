@@ -60,7 +60,7 @@ func main() {
 	cartGroup := router.Group("/cart")
 	cartGroup.Use(auth)
 	{
-		cartGroup.POST("/", cartHandler.AddToCart)
+		cartGroup.POST("/add", cartHandler.AddToCart)
 		cartGroup.GET("/", cartHandler.GetCartItems)
 		cartGroup.DELETE("/:id", cartHandler.RemoveFromCart)
 	}

@@ -1,0 +1,12 @@
+FROM golang:1.20-alpine
+WORKDIR /app
+
+# Copy go.mod and go.sum and download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the entire codebase. You can narrow this down if needed.
+COPY . .
+
+# By default, run the seed script.
+CMD ["go", "run", "scripts/seed.go"]
